@@ -151,8 +151,7 @@ function loadStory(paths, story) {
 
     // 📄 PDF (fallback)
     let pdf = document.createElement("iframe");
-    pdf.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${chap}.pdf`;
-
+pdf.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${chap}.pdf`;
     setTimeout(() => {
       if(!hasImage) {
         div.appendChild(pdf);
