@@ -138,15 +138,38 @@ function loadStory(paths, story) {
 
     let hasImage = false;
 
-    // 🖼️ IMAGES
-    for(let i=1; i<=50; i++) {
-      let img = document.createElement("img");
-      img.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${i}.jpg`;
+// GET ALL IMAGES INSIDE CHAPTER
+let chapterImages = paths.filter(p =>
+  p.startsWith(`stories/${story}/${chap}/`) &&
+  (
+    p.endsWith(".jpg") ||
+    p.endsWith(".jpeg") ||
+    p.endsWith(".png") ||
+    p.endsWith(".webp")
+  )
+);
 
-      img.onload = () => hasImage = true;
-      img.onerror = () => img.remove();
+// SORT IMAGES
+chapterImages.sort((a,b) => {
+  return a.localeCompare(b, undefined, {
+    numeric: true,
+    sensitivity: 'base'
+  });
+});
 
-      div.appendChild(img);
+// DISPLAY IMAGES
+chapterImages.forEach(path => {
+
+  let img = document.createElement("img");
+
+  img.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/${path}`;
+
+  img.onload = () => hasImage = true;
+
+  img.onerror = () => img.remove();
+
+  div.appendChild(img);
+});
     }
 
     // 📄 PDF (fallback)
