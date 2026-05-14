@@ -173,32 +173,10 @@ iframe {
 <div id="loading">Uploading...</div>
 
 <script>
-window.addEventListener("load", () => {
-
-  let password = prompt("Mot de passe ?");
-
-  if(password !== "MartinCortis") {
-
-    document.body.innerHTML = `
-      <div style="
-        height:100vh;
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-        align-items:center;
-        background:white;
-        color:black;
-        font-family:Arial;
-      ">
-        <div style="font-size:70px;">⚠️</div>
-        <h1>Access Denied</h1>
-      </div>
-    `;
-
-    throw new Error("Wrong password");
-  }
-
-});
+let password = prompt("Mot de passe ?");
+if(password !== "MartinCortis") {
+  document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;'>Accès refusé</h1>";
+}
 </script>
 
 <header>
@@ -311,9 +289,10 @@ function loadStory(story) {
       div.appendChild(img);
     });
 
-   let pdf = document.createElement("iframe");
-pdf.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${chap}.pdf`;
-div.appendChild(pdf);
+    if(images.length === 0) {
+      let pdf = document.createElement("iframe");
+      pdf.src = `https://github.com/${USER}/${REPO}/raw/main/stories/${story}/${chap}/${chap}.pdf`;
+      div.appendChild(pdf);
     }
 
     document.getElementById("content").appendChild(div);
@@ -322,19 +301,16 @@ div.appendChild(pdf);
 
 // -------------------- ADMIN --------------------
 
-window.addEventListener("load", () => {
+document.getElementById("adminButton").onclick = () => {
+  let pass = prompt("Admin password?");
+  if(pass === "Sawyer0325") {
+    document.getElementById("adminPanel").style.display = "block";
+  }
+}
 
-  document.getElementById("adminButton").addEventListener("click", () => {
-
-    let pass = prompt("Admin password?");
-
-    if(pass === "here again") {
-      document.getElementById("adminPanel").style.display = "block";
-    }
-
-  });
-
-});
+function closeAdmin() {
+  document.getElementById("adminPanel").style.display = "none";
+}
 
 // -------------------- UPLOAD --------------------
 
@@ -356,8 +332,7 @@ async function uploadChapter() {
 
     let base64 = await toBase64(files[i]);
 
-    let extension = files[i].name.split('.').pop().toLowerCase();
-let path = `stories/${story}/${chapter}/${i+1}.${extension}`;
+    let path = `stories/${story}/${chapter}/${i+1}.jpg`;
 
     await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${path}`, {
       method:"PUT",
