@@ -316,15 +316,14 @@ div.appendChild(pdf);
 // -------------------- ADMIN --------------------
 
 document.getElementById("adminButton").onclick = () => {
-  let pass = prompt("Admin password?");
-  if(pass === "Sawyer0325") {
-    document.getElementById("adminPanel").style.display = "block";
+ window.addEventListener("load", () => {
+  document.getElementById("adminButton").onclick = () => {
+    let pass = prompt("Admin password?");
+    if(pass === "Sawyer0325") {
+      document.getElementById("adminPanel").style.display = "block";
+    }
   }
-}
-
-function closeAdmin() {
-  document.getElementById("adminPanel").style.display = "none";
-}
+});
 
 // -------------------- UPLOAD --------------------
 
