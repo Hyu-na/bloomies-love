@@ -105,8 +105,6 @@ iframe {
   border-radius: 10px;
 }
 
-/* ADMIN BUTTON */
-
 #adminButton {
   position: fixed;
   bottom: 20px;
@@ -120,8 +118,6 @@ iframe {
   font-weight: bold;
   box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
-
-/* ADMIN PANEL */
 
 #adminPanel {
   display: none;
@@ -137,14 +133,10 @@ iframe {
   box-shadow: 0 0 40px black;
 }
 
-#adminPanel h2 {
-  margin-top: 0;
-}
-
 .adminInput {
   width: 100%;
   padding: 12px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   background: #1b1b1b;
   border: none;
   color: white;
@@ -160,10 +152,6 @@ iframe {
   border-radius: 10px;
   cursor: pointer;
   margin-bottom: 10px;
-}
-
-.adminButton:hover {
-  background: #ff4d7f;
 }
 
 #loading {
@@ -185,25 +173,15 @@ iframe {
 <div id="loading">Uploading...</div>
 
 <script>
-
-// LOGIN PASSWORD
-
 let password = prompt("Mot de passe ?");
-
-if(password !== "Cortis1516") {
+if(password !== "MartinCortis") {
   document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;'>Accès refusé</h1>";
 }
-
 </script>
 
 <header>
   <h1>Private Webtoon Platform</h1>
-
-  <input
-    type="text"
-    id="searchBar"
-    placeholder="Search a story..."
-  >
+  <input type="text" id="searchBar" placeholder="Search a story...">
 </header>
 
 <div id="layout">
@@ -211,147 +189,71 @@ if(password !== "Cortis1516") {
   <div id="content"></div>
 </div>
 
-<!-- ADMIN BUTTON -->
-
 <div id="adminButton">ADMIN</div>
-
-<!-- ADMIN PANEL -->
 
 <div id="adminPanel">
 
   <h2>Admin Upload</h2>
 
-  <input
-    type="text"
-    id="storyName"
-    class="adminInput"
-    placeholder="Story Name"
-  >
+  <input id="storyName" class="adminInput" placeholder="Story Name">
+  <input id="chapterName" class="adminInput" placeholder="Chapter Number">
+  <input type="file" id="imageUpload" multiple accept="image/*" class="adminInput">
 
-  <input
-    type="text"
-    id="chapterName"
-    class="adminInput"
-    placeholder="Chapter Number"
-  >
+  <button class="adminButton" onclick="uploadChapter()">Upload Chapter</button>
 
-  <input
-    type="file"
-    id="imageUpload"
-    multiple
-    accept="image/*"
-    class="adminInput"
-  >
+  <button class="adminButton" onclick="deleteChapterUI()">Delete Chapter</button>
+  <button class="adminButton" onclick="deleteStoryUI()">Delete Story</button>
 
-  <button class="adminButton" onclick="uploadChapter()">
-    Upload Chapter
-  </button>
-
-  <button class="adminButton" onclick="closeAdmin()">
-    Close
-  </button>
+  <button class="adminButton" onclick="closeAdmin()">Close</button>
 
 </div>
 
 <script>
 
-// =========================
-// CONFIG
-// =========================
-
 const USER = "Hyu-na";
 const REPO = "bloomies-love";
-
-// PUT YOUR TOKEN HERE
-const GITHUB_TOKEN = "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";
+const GITHUB_TOKEN = "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";
 
 let GLOBAL_PATHS = [];
 let GLOBAL_STORIES = [];
 
-// =========================
-// LOAD STORIES
-// =========================
+// -------------------- LOAD STORIES --------------------
 
 async function loadStories() {
-
-  document.getElementById("stories").innerHTML = "";
-
-  let res = await fetch(
-    `https://api.github.com/repos/${USER}/${REPO}/git/trees/main?recursive=1`
-  );
-
+  let res = await fetch(`https://api.github.com/repos/${USER}/${REPO}/git/trees/main?recursive=1`);
   let data = await res.json();
-
   let paths = data.tree.map(x => x.path);
 
   GLOBAL_PATHS = paths;
 
   let stories = {};
-
   paths.forEach(path => {
-
     if(path.startsWith("stories/")) {
-
       let parts = path.split("/");
-
-      if(parts.length >= 2) {
-        stories[parts[1]] = true;
-      }
-
+      if(parts.length >= 2) stories[parts[1]] = true;
     }
-
   });
 
   GLOBAL_STORIES = Object.keys(stories);
-
   displayStories(GLOBAL_STORIES);
 }
 
-// =========================
-// DISPLAY STORIES
-// =========================
-
-function displayStories(storyList) {
-
+function displayStories(list) {
   document.getElementById("stories").innerHTML = "";
-
-  storyList.forEach(story => {
-
+  list.forEach(story => {
     let btn = document.createElement("button");
-
     btn.className = "storyButton";
-
     btn.innerText = story;
-
     btn.onclick = () => loadStory(story);
-
     document.getElementById("stories").appendChild(btn);
-
   });
-
 }
 
-// =========================
-// SEARCH BAR
-// =========================
-
 const searchBar = document.getElementById("searchBar");
-
 searchBar.addEventListener("input", () => {
-
-  let value = searchBar.value.toLowerCase();
-
-  let filtered = GLOBAL_STORIES.filter(story =>
-    story.toLowerCase().includes(value)
-  );
-
-  displayStories(filtered);
-
+  let v = searchBar.value.toLowerCase();
+  displayStories(GLOBAL_STORIES.filter(s => s.toLowerCase().includes(v)));
 });
-
-// =========================
-// LOAD STORY
-// =========================
 
 function loadStory(story) {
 
@@ -360,217 +262,147 @@ function loadStory(story) {
   let chapters = {};
 
   GLOBAL_PATHS.forEach(path => {
-
     if(path.startsWith(`stories/${story}/`)) {
-
       let parts = path.split("/");
-
-      if(parts.length >= 3) {
-        chapters[parts[2]] = true;
-      }
-
+      if(parts.length >= 3) chapters[parts[2]] = true;
     }
-
   });
 
-  let sortedChapters = Object.keys(chapters).sort((a,b) => {
-    return a.localeCompare(b, undefined, {
-      numeric: true,
-      sensitivity: 'base'
-    });
-  });
+  Object.keys(chapters).forEach(chap => {
 
-  sortedChapters.forEach(chap => {
-
-    let chapterDiv = document.createElement("div");
-
-    chapterDiv.className = "chapter";
+    let div = document.createElement("div");
+    div.className = "chapter";
 
     let title = document.createElement("div");
-
     title.className = "chapterTitle";
-
     title.innerText = `Chapter ${chap}`;
+    div.appendChild(title);
 
-    chapterDiv.appendChild(title);
-
-    // GET ALL IMAGES
-
-    let chapterImages = GLOBAL_PATHS.filter(path =>
-
-      path.startsWith(`stories/${story}/${chap}/`) &&
-
-      (
-        path.endsWith(".jpg") ||
-        path.endsWith(".jpeg") ||
-        path.endsWith(".png") ||
-        path.endsWith(".webp")
-      )
-
+    let images = GLOBAL_PATHS.filter(p =>
+      p.startsWith(`stories/${story}/${chap}/`) &&
+      (p.endsWith(".jpg") || p.endsWith(".png") || p.endsWith(".webp"))
     );
 
-    // SORT IMAGES
-
-    chapterImages.sort((a,b) => {
-
-      return a.localeCompare(b, undefined, {
-        numeric: true,
-        sensitivity: 'base'
-      });
-
-    });
-
-    // DISPLAY IMAGES
-
-    chapterImages.forEach(path => {
-
+    images.forEach(path => {
       let img = document.createElement("img");
-
-      img.loading = "lazy";
-
       img.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/${path}`;
-
-      img.onerror = () => {
-        img.remove();
-      }
-
-      chapterDiv.appendChild(img);
-
+      div.appendChild(img);
     });
 
-    // PDF FALLBACK
-
-    if(chapterImages.length === 0) {
-
+    if(images.length === 0) {
       let pdf = document.createElement("iframe");
-
-      pdf.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${chap}.pdf`;
-
-      chapterDiv.appendChild(pdf);
-
+      pdf.src = `https://github.com/${USER}/${REPO}/raw/main/stories/${story}/${chap}/${chap}.pdf`;
+      div.appendChild(pdf);
     }
 
-    document.getElementById("content").appendChild(chapterDiv);
-
+    document.getElementById("content").appendChild(div);
   });
-
 }
 
-// =========================
-// ADMIN PANEL
-// =========================
+// -------------------- ADMIN --------------------
 
-const adminButton = document.getElementById("adminButton");
-const adminPanel = document.getElementById("adminPanel");
-
-adminButton.onclick = () => {
-
-  let adminPass = prompt("Admin password?");
-
-  if(adminPass === "Sawyer1516") {
-    adminPanel.style.display = "block";
+document.getElementById("adminButton").onclick = () => {
+  let pass = prompt("Admin password?");
+  if(pass === "Sawyer0325") {
+    document.getElementById("adminPanel").style.display = "block";
   }
-
 }
 
 function closeAdmin() {
-  adminPanel.style.display = "none";
+  document.getElementById("adminPanel").style.display = "none";
 }
 
-// =========================
-// FILE TO BASE64
-// =========================
+// -------------------- UPLOAD --------------------
 
 function toBase64(file) {
-
-  return new Promise((resolve, reject) => {
-
-    const reader = new FileReader();
-
-    reader.readAsDataURL(file);
-
-    reader.onload = () => {
-      resolve(reader.result.split(',')[1]);
-    }
-
-    reader.onerror = error => reject(error);
-
+  return new Promise(res => {
+    let r = new FileReader();
+    r.onload = () => res(r.result.split(",")[1]);
+    r.readAsDataURL(file);
   });
-
 }
-
-// =========================
-// UPLOAD CHAPTER
-// =========================
 
 async function uploadChapter() {
 
-  const story = document.getElementById("storyName").value.trim();
+  let story = document.getElementById("storyName").value;
+  let chapter = document.getElementById("chapterName").value;
+  let files = document.getElementById("imageUpload").files;
 
-  const chapter = document.getElementById("chapterName").value.trim();
+  for(let i=0;i<files.length;i++) {
 
-  const files = document.getElementById("imageUpload").files;
+    let base64 = await toBase64(files[i]);
 
-  if(!story || !chapter || files.length === 0) {
-    alert("Fill everything.");
-    return;
-  }
+    let path = `stories/${story}/${chapter}/${i+1}.jpg`;
 
-  document.getElementById("loading").style.display = "block";
-
-  let sortedFiles = Array.from(files).sort((a,b) => {
-
-    return a.name.localeCompare(b.name, undefined, {
-      numeric: true,
-      sensitivity: 'base'
+    await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${path}`, {
+      method:"PUT",
+      headers:{
+        Authorization:`token ${GITHUB_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        message:`upload`,
+        content: base64
+      })
     });
 
-  });
-
-  for(let i = 0; i < sortedFiles.length; i++) {
-
-    const file = sortedFiles[i];
-
-    const extension = file.name.split('.').pop();
-
-    const base64 = await toBase64(file);
-
-    const path = `stories/${story}/${chapter}/${i+1}.${extension}`;
-
-    await fetch(
-      `https://api.github.com/repos/${USER}/${REPO}/contents/${path}`,
-      {
-
-        method: 'PUT',
-
-        headers: {
-          Authorization: `token ${GITHUB_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-
-        body: JSON.stringify({
-          message: `Upload ${path}`,
-          content: base64
-        })
-
-      }
-    );
-
   }
 
-  document.getElementById("loading").style.display = "none";
-
-  alert("Chapter uploaded successfully!");
-
-  closeAdmin();
-
+  alert("Uploaded");
   loadStories();
-
 }
 
-// =========================
-// START
-// =========================
+// -------------------- DELETE SYSTEM --------------------
+
+async function getFile(path){
+  let r = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${path}`,{
+    headers:{Authorization:`token ${GITHUB_TOKEN}`}
+  });
+  return r.json();
+}
+
+async function deleteFile(path, sha){
+  await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${path}`,{
+    method:"DELETE",
+    headers:{
+      Authorization:`token ${GITHUB_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({
+      message:"delete",
+      sha: sha
+    })
+  });
+}
+
+async function deleteChapterUI(){
+  let story = document.getElementById("storyName").value;
+  let chapter = document.getElementById("chapterName").value;
+
+  let files = GLOBAL_PATHS.filter(p => p.startsWith(`stories/${story}/${chapter}/`));
+
+  for(let f of files){
+    let info = await getFile(f);
+    await deleteFile(f, info.sha);
+  }
+
+  alert("Chapter deleted");
+  loadStories();
+}
+
+async function deleteStoryUI(){
+  let story = document.getElementById("storyName").value;
+
+  let files = GLOBAL_PATHS.filter(p => p.startsWith(`stories/${story}/`));
+
+  for(let f of files){
+    let info = await getFile(f);
+    await deleteFile(f, info.sha);
+  }
+
+  alert("Story deleted");
+  loadStories();
+}
 
 loadStories();
 
