@@ -174,14 +174,23 @@ iframe {
 
 <script>
 let password = prompt("Mot de passe ?");
+
 if(password !== "MartinCortis") {
   document.body.innerHTML = `
-    <div style="height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:white;color:black;">
+    <div style="
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      background:white;
+      color:black;
+      font-family:Arial;
+    ">
       <div style="font-size:70px;">⚠️</div>
       <h1>Access Denied</h1>
     </div>
   `;
-}
 }
 </script>
 
