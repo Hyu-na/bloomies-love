@@ -175,7 +175,13 @@ iframe {
 <script>
 let password = prompt("Mot de passe ?");
 if(password !== "MartinCortis") {
-  document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;'>Accès refusé</h1>";
+  document.body.innerHTML = `
+    <div style="height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:white;color:black;">
+      <div style="font-size:70px;">⚠️</div>
+      <h1>Access Denied</h1>
+    </div>
+  `;
+}
 }
 </script>
 
@@ -289,10 +295,9 @@ function loadStory(story) {
       div.appendChild(img);
     });
 
-    if(images.length === 0) {
-      let pdf = document.createElement("iframe");
-      pdf.src = `https://github.com/${USER}/${REPO}/raw/main/stories/${story}/${chap}/${chap}.pdf`;
-      div.appendChild(pdf);
+   let pdf = document.createElement("iframe");
+pdf.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${chap}.pdf`;
+div.appendChild(pdf);
     }
 
     document.getElementById("content").appendChild(div);
@@ -332,7 +337,8 @@ async function uploadChapter() {
 
     let base64 = await toBase64(files[i]);
 
-    let path = `stories/${story}/${chapter}/${i+1}.jpg`;
+    let extension = files[i].name.split('.').pop().toLowerCase();
+let path = `stories/${story}/${chapter}/${i+1}.${extension}`;
 
     await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${path}`, {
       method:"PUT",
