@@ -2,188 +2,575 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Webtoon Platform Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Private Webtoon Platform</title>
 
 <style>
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background: #0f0f0f;
   color: white;
+  overflow: hidden;
 }
 
 header {
-  background: black;
+  background: #000;
   padding: 15px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #222;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+#searchBar {
+  width: 250px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #1a1a1a;
+  color: white;
+  outline: none;
 }
 
 #layout {
   display: flex;
+  height: calc(100vh - 70px);
 }
 
 #stories {
-  width: 220px;
+  width: 260px;
   background: #111;
-  height: 100vh;
   overflow-y: auto;
   padding: 10px;
+  border-right: 1px solid #222;
 }
 
-button {
+.storyButton {
   width: 100%;
-  margin-bottom: 5px;
-  padding: 10px;
+  margin-bottom: 8px;
+  padding: 12px;
   background: #ff2e63;
   border: none;
   color: white;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.storyButton:hover {
+  background: #ff4d7f;
 }
 
 #content {
   flex: 1;
-  padding: 10px;
   overflow-y: auto;
-  height: 100vh;
+  padding: 15px;
+}
+
+.chapter {
+  margin-bottom: 50px;
+}
+
+.chapterTitle {
+  font-size: 24px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ff2e63;
+  padding-bottom: 10px;
 }
 
 img {
   width: 100%;
-  margin-bottom: 10px;
-  border-radius: 8px;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
 iframe {
   width: 100%;
-  height: 700px;
+  height: 800px;
   border: none;
   border-radius: 10px;
 }
+
+/* ADMIN BUTTON */
+
+#adminButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #ff2e63;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  z-index: 9999;
+  font-weight: bold;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* ADMIN PANEL */
+
+#adminPanel {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #111;
+  width: 400px;
+  padding: 25px;
+  border-radius: 20px;
+  z-index: 10000;
+  box-shadow: 0 0 40px black;
+}
+
+#adminPanel h2 {
+  margin-top: 0;
+}
+
+.adminInput {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  background: #1b1b1b;
+  border: none;
+  color: white;
+  border-radius: 10px;
+}
+
+.adminButton {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: #ff2e63;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.adminButton:hover {
+  background: #ff4d7f;
+}
+
+#loading {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #ff2e63;
+  padding: 10px 15px;
+  border-radius: 10px;
+  display: none;
+  z-index: 99999;
+}
+
 </style>
 </head>
 
 <body>
 
+<div id="loading">Uploading...</div>
+
 <script>
+
+// LOGIN PASSWORD
+
 let password = prompt("Mot de passe ?");
-if(password !== "Cortis0325") {
-  document.body.innerHTML = "Accès refusé";
+
+if(password !== "Cortis1516") {
+  document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;'>Accès refusé</h1>";
 }
+
 </script>
 
-<header>📚 Webtoon Platform Pro</header>
+<header>
+  <h1>Private Webtoon Platform</h1>
+
+  <input
+    type="text"
+    id="searchBar"
+    placeholder="Search a story..."
+  >
+</header>
 
 <div id="layout">
   <div id="stories"></div>
   <div id="content"></div>
 </div>
 
+<!-- ADMIN BUTTON -->
+
+<div id="adminButton">ADMIN</div>
+
+<!-- ADMIN PANEL -->
+
+<div id="adminPanel">
+
+  <h2>Admin Upload</h2>
+
+  <input
+    type="text"
+    id="storyName"
+    class="adminInput"
+    placeholder="Story Name"
+  >
+
+  <input
+    type="text"
+    id="chapterName"
+    class="adminInput"
+    placeholder="Chapter Number"
+  >
+
+  <input
+    type="file"
+    id="imageUpload"
+    multiple
+    accept="image/*"
+    class="adminInput"
+  >
+
+  <button class="adminButton" onclick="uploadChapter()">
+    Upload Chapter
+  </button>
+
+  <button class="adminButton" onclick="closeAdmin()">
+    Close
+  </button>
+
+</div>
+
 <script>
+
+// =========================
+// CONFIG
+// =========================
 
 const USER = "Hyu-na";
 const REPO = "bloomies-love";
 
+// PUT YOUR TOKEN HERE
+const GITHUB_TOKEN = "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";
+
+let GLOBAL_PATHS = [];
+let GLOBAL_STORIES = [];
+
+// =========================
+// LOAD STORIES
+// =========================
+
 async function loadStories() {
 
-  let res = await fetch(`https://api.github.com/repos/${USER}/${REPO}/git/trees/main?recursive=1`);
+  document.getElementById("stories").innerHTML = "";
+
+  let res = await fetch(
+    `https://api.github.com/repos/${USER}/${REPO}/git/trees/main?recursive=1`
+  );
+
   let data = await res.json();
 
   let paths = data.tree.map(x => x.path);
 
+  GLOBAL_PATHS = paths;
+
   let stories = {};
 
-  paths.forEach(p => {
-    if(p.startsWith("stories/")) {
-      let parts = p.split("/");
+  paths.forEach(path => {
+
+    if(path.startsWith("stories/")) {
+
+      let parts = path.split("/");
+
       if(parts.length >= 2) {
         stories[parts[1]] = true;
       }
+
     }
+
   });
 
-  Object.keys(stories).forEach(story => {
+  GLOBAL_STORIES = Object.keys(stories);
 
-    let btn = document.createElement("button");
-    btn.innerText = story;
-
-    btn.onclick = () => loadStory(paths, story);
-
-    document.getElementById("stories").appendChild(btn);
-  });
+  displayStories(GLOBAL_STORIES);
 }
 
-function loadStory(paths, story) {
+// =========================
+// DISPLAY STORIES
+// =========================
+
+function displayStories(storyList) {
+
+  document.getElementById("stories").innerHTML = "";
+
+  storyList.forEach(story => {
+
+    let btn = document.createElement("button");
+
+    btn.className = "storyButton";
+
+    btn.innerText = story;
+
+    btn.onclick = () => loadStory(story);
+
+    document.getElementById("stories").appendChild(btn);
+
+  });
+
+}
+
+// =========================
+// SEARCH BAR
+// =========================
+
+const searchBar = document.getElementById("searchBar");
+
+searchBar.addEventListener("input", () => {
+
+  let value = searchBar.value.toLowerCase();
+
+  let filtered = GLOBAL_STORIES.filter(story =>
+    story.toLowerCase().includes(value)
+  );
+
+  displayStories(filtered);
+
+});
+
+// =========================
+// LOAD STORY
+// =========================
+
+function loadStory(story) {
 
   document.getElementById("content").innerHTML = "";
 
   let chapters = {};
 
-  paths.forEach(p => {
-    if(p.includes(`stories/${story}/`)) {
-      let parts = p.split("/");
+  GLOBAL_PATHS.forEach(path => {
+
+    if(path.startsWith(`stories/${story}/`)) {
+
+      let parts = path.split("/");
+
       if(parts.length >= 3) {
         chapters[parts[2]] = true;
       }
-    }
-  });
 
-  Object.keys(chapters).forEach(chap => {
-
-    let div = document.createElement("div");
-
-    let title = document.createElement("h2");
-    title.innerText = "Chapitre " + chap;
-    div.appendChild(title);
-
-    let hasImage = false;
-
-// GET ALL IMAGES INSIDE CHAPTER
-let chapterImages = paths.filter(p =>
-  p.startsWith(`stories/${story}/${chap}/`) &&
-  (
-    p.endsWith(".jpg") ||
-    p.endsWith(".jpeg") ||
-    p.endsWith(".png") ||
-    p.endsWith(".webp")
-  )
-);
-
-// SORT IMAGES
-chapterImages.sort((a,b) => {
-  return a.localeCompare(b, undefined, {
-    numeric: true,
-    sensitivity: 'base'
-  });
-});
-
-// DISPLAY IMAGES
-chapterImages.forEach(path => {
-
-  let img = document.createElement("img");
-
-  img.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/${path}`;
-
-  img.onload = () => hasImage = true;
-
-  img.onerror = () => img.remove();
-
-  div.appendChild(img);
-});
     }
 
-    // 📄 PDF (fallback)
-    let pdf = document.createElement("iframe");
-pdf.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${chap}.pdf`;
-    setTimeout(() => {
-      if(!hasImage) {
-        div.appendChild(pdf);
+  });
+
+  let sortedChapters = Object.keys(chapters).sort((a,b) => {
+    return a.localeCompare(b, undefined, {
+      numeric: true,
+      sensitivity: 'base'
+    });
+  });
+
+  sortedChapters.forEach(chap => {
+
+    let chapterDiv = document.createElement("div");
+
+    chapterDiv.className = "chapter";
+
+    let title = document.createElement("div");
+
+    title.className = "chapterTitle";
+
+    title.innerText = `Chapter ${chap}`;
+
+    chapterDiv.appendChild(title);
+
+    // GET ALL IMAGES
+
+    let chapterImages = GLOBAL_PATHS.filter(path =>
+
+      path.startsWith(`stories/${story}/${chap}/`) &&
+
+      (
+        path.endsWith(".jpg") ||
+        path.endsWith(".jpeg") ||
+        path.endsWith(".png") ||
+        path.endsWith(".webp")
+      )
+
+    );
+
+    // SORT IMAGES
+
+    chapterImages.sort((a,b) => {
+
+      return a.localeCompare(b, undefined, {
+        numeric: true,
+        sensitivity: 'base'
+      });
+
+    });
+
+    // DISPLAY IMAGES
+
+    chapterImages.forEach(path => {
+
+      let img = document.createElement("img");
+
+      img.loading = "lazy";
+
+      img.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/${path}`;
+
+      img.onerror = () => {
+        img.remove();
       }
-    }, 300);
 
-    document.getElementById("content").appendChild(div);
+      chapterDiv.appendChild(img);
+
+    });
+
+    // PDF FALLBACK
+
+    if(chapterImages.length === 0) {
+
+      let pdf = document.createElement("iframe");
+
+      pdf.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${chap}.pdf`;
+
+      chapterDiv.appendChild(pdf);
+
+    }
+
+    document.getElementById("content").appendChild(chapterDiv);
+
   });
+
 }
+
+// =========================
+// ADMIN PANEL
+// =========================
+
+const adminButton = document.getElementById("adminButton");
+const adminPanel = document.getElementById("adminPanel");
+
+adminButton.onclick = () => {
+
+  let adminPass = prompt("Admin password?");
+
+  if(adminPass === "Sawyer1516") {
+    adminPanel.style.display = "block";
+  }
+
+}
+
+function closeAdmin() {
+  adminPanel.style.display = "none";
+}
+
+// =========================
+// FILE TO BASE64
+// =========================
+
+function toBase64(file) {
+
+  return new Promise((resolve, reject) => {
+
+    const reader = new FileReader();
+
+    reader.readAsDataURL(file);
+
+    reader.onload = () => {
+      resolve(reader.result.split(',')[1]);
+    }
+
+    reader.onerror = error => reject(error);
+
+  });
+
+}
+
+// =========================
+// UPLOAD CHAPTER
+// =========================
+
+async function uploadChapter() {
+
+  const story = document.getElementById("storyName").value.trim();
+
+  const chapter = document.getElementById("chapterName").value.trim();
+
+  const files = document.getElementById("imageUpload").files;
+
+  if(!story || !chapter || files.length === 0) {
+    alert("Fill everything.");
+    return;
+  }
+
+  document.getElementById("loading").style.display = "block";
+
+  let sortedFiles = Array.from(files).sort((a,b) => {
+
+    return a.name.localeCompare(b.name, undefined, {
+      numeric: true,
+      sensitivity: 'base'
+    });
+
+  });
+
+  for(let i = 0; i < sortedFiles.length; i++) {
+
+    const file = sortedFiles[i];
+
+    const extension = file.name.split('.').pop();
+
+    const base64 = await toBase64(file);
+
+    const path = `stories/${story}/${chapter}/${i+1}.${extension}`;
+
+    await fetch(
+      `https://api.github.com/repos/${USER}/${REPO}/contents/${path}`,
+      {
+
+        method: 'PUT',
+
+        headers: {
+          Authorization: `token ${GITHUB_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+          message: `Upload ${path}`,
+          content: base64
+        })
+
+      }
+    );
+
+  }
+
+  document.getElementById("loading").style.display = "none";
+
+  alert("Chapter uploaded successfully!");
+
+  closeAdmin();
+
+  loadStories();
+
+}
+
+// =========================
+// START
+// =========================
 
 loadStories();
 
