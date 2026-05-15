@@ -236,9 +236,9 @@ iframe {
 // PASSWORD PROTECTION
 // =========================
 
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
 
-  let password = prompt("Mot de passe ?");
+  const password = prompt("Mot de passe ?");
 
   if(password !== "MartinCortis") {
 
@@ -246,20 +246,22 @@ window.addEventListener("load", () => {
       <div style="
         height:100vh;
         display:flex;
-        flex-direction:column;
         justify-content:center;
         align-items:center;
         background:white;
         color:black;
-        font-family:Arial;
+        font-size:24px;
+        flex-direction:column;
       ">
-        <div style="font-size:70px;">⚠️</div>
-        <h1>Access Denied</h1>
+        <div style="font-size:60px;">⚠️</div>
+        <div>Access Denied</div>
       </div>
     `;
 
-    throw new Error("Wrong password");
+    return;
   }
+
+  startApp();
 
 });
 
@@ -609,8 +611,8 @@ async function uploadChapter() {
 
   closeAdmin();
 
+function startApp() {
   loadStories();
-
 }
 
 // =========================
