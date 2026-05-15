@@ -6,7 +6,6 @@
 <title>Private Webtoon Platform</title>
 
 <style>
-
 * {
   box-sizing: border-box;
 }
@@ -66,7 +65,6 @@ header h1 {
   border-radius: 10px;
   cursor: pointer;
   font-size: 15px;
-  transition: 0.2s;
 }
 
 .storyButton:hover {
@@ -105,8 +103,6 @@ iframe {
   border-radius: 10px;
 }
 
-/* ADMIN BUTTON */
-
 #adminButton {
   position: fixed;
   bottom: 20px;
@@ -118,10 +114,7 @@ iframe {
   cursor: pointer;
   z-index: 9999;
   font-weight: bold;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
-
-/* ADMIN PANEL */
 
 #adminPanel {
   display: none;
@@ -134,17 +127,12 @@ iframe {
   padding: 25px;
   border-radius: 20px;
   z-index: 10000;
-  box-shadow: 0 0 40px black;
-}
-
-#adminPanel h2 {
-  margin-top: 0;
 }
 
 .adminInput {
   width: 100%;
   padding: 12px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   background: #1b1b1b;
   border: none;
   color: white;
@@ -162,10 +150,6 @@ iframe {
   margin-bottom: 10px;
 }
 
-.adminButton:hover {
-  background: #ff4d7f;
-}
-
 #loading {
   position: fixed;
   top: 20px;
@@ -177,6 +161,28 @@ iframe {
   z-index: 99999;
 }
 
+  #searchResults {
+  position: absolute;
+  top: 50px;
+  right: 15px;
+  width: 250px;
+  background: #111;
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 9999;
+  border: 1px solid #222;
+}
+
+.searchItem {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #222;
+}
+
+.searchItem:hover {
+  background: #ff2e63;
+}
+  
 </style>
 </head>
 
@@ -184,26 +190,17 @@ iframe {
 
 <div id="loading">Uploading...</div>
 
-<script>
-
-// LOGIN PASSWORD
-
-let password = prompt("Mot de passe ?");
-
-if(password !== "Cortis1516") {
-  document.body.innerHTML = "<h1 style='text-align:center;margin-top:100px;'>Accès refusé</h1>";
-}
-
-</script>
-
 <header>
   <h1>Private Webtoon Platform</h1>
 
-  <input
-    type="text"
-    id="searchBar"
-    placeholder="Search a story..."
-  >
+  <div style="position:relative; display:inline-block;">
+
+    <input type="text" id="searchBar" placeholder="Search a story...">
+
+    <div id="searchResults"></div>
+
+  </div>
+
 </header>
 
 <div id="layout">
@@ -211,59 +208,69 @@ if(password !== "Cortis1516") {
   <div id="content"></div>
 </div>
 
-<!-- ADMIN BUTTON -->
-
 <div id="adminButton">ADMIN</div>
-
-<!-- ADMIN PANEL -->
 
 <div id="adminPanel">
 
   <h2>Admin Upload</h2>
 
-  <input
-    type="text"
-    id="storyName"
-    class="adminInput"
-    placeholder="Story Name"
-  >
+  <input id="storyName" class="adminInput" placeholder="Story Name">
 
-  <input
-    type="text"
-    id="chapterName"
-    class="adminInput"
-    placeholder="Chapter Number"
-  >
+  <input id="chapterName" class="adminInput" placeholder="Chapter Number">
 
-  <input
-    type="file"
-    id="imageUpload"
-    multiple
-    accept="image/*"
-    class="adminInput"
-  >
+  <input type="file" id="imageUpload" multiple accept="image/*,.pdf" class="adminInput">
 
-  <button class="adminButton" onclick="uploadChapter()">
-    Upload Chapter
-  </button>
+  <button class="adminButton" onclick="uploadChapter()">Upload Chapter</button>
 
-  <button class="adminButton" onclick="closeAdmin()">
-    Close
-  </button>
+  <button class="adminButton" onclick="deleteChapterUI()">Delete Chapter</button>
+
+  <button class="adminButton" onclick="deleteStoryUI()">Delete Story</button>
+
+  <button class="adminButton" onclick="closeAdmin()">Close</button>
 
 </div>
 
 <script>
 
 // =========================
+// PASSWORD PROTECTION
+// =========================
+
+window.addEventListener("load", () => {
+
+  let password = prompt("Mot de passe ?");
+
+  if(password !== "MartinCortis") {
+
+    document.body.innerHTML = `
+      <div style="
+        height:100vh;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        background:white;
+        color:black;
+        font-family:Arial;
+      ">
+        <div style="font-size:70px;">⚠️</div>
+        <h1>Access Denied</h1>
+      </div>
+    `;
+
+    throw new Error("Wrong password");
+  }
+
+});
+
+// =========================
 // CONFIG
 // =========================
 
 const USER = "Hyu-na";
-const REPO = "bloomies-love";
-
-// PUT YOUR TOKEN HERE
-const GITHUB_TOKEN = "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";
+const REPO = "Bloomies-love";
+const GITHUB_TOKEN = "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";
+const ADMIN_PASSWORD = "Sawyer0325";
 
 let GLOBAL_PATHS = [];
 let GLOBAL_STORIES = [];
@@ -281,6 +288,11 @@ async function loadStories() {
   );
 
   let data = await res.json();
+
+  if(!data.tree) {
+    console.log(data);
+    return;
+  }
 
   let paths = data.tree.map(x => x.path);
 
@@ -332,20 +344,58 @@ function displayStories(storyList) {
 }
 
 // =========================
-// SEARCH BAR
+// SEARCH SYSTEM
 // =========================
 
 const searchBar = document.getElementById("searchBar");
+const searchResults = document.getElementById("searchResults");
 
 searchBar.addEventListener("input", () => {
 
-  let value = searchBar.value.toLowerCase();
+  let value = searchBar.value.toLowerCase().trim();
 
+  // clear dropdown
+  searchResults.innerHTML = "";
+
+  // if empty → show all stories again
+  if(value === "") {
+    displayStories(GLOBAL_STORIES);
+    return;
+  }
+
+  // filter stories
   let filtered = GLOBAL_STORIES.filter(story =>
     story.toLowerCase().includes(value)
   );
 
+  // update left panel list
   displayStories(filtered);
+
+  // create clickable suggestions (dropdown)
+  filtered.forEach(story => {
+
+    let item = document.createElement("div");
+
+    item.className = "searchItem";
+
+    item.innerText = story;
+
+    item.onclick = () => {
+
+      // load selected story instantly
+      loadStory(story);
+
+      // clean dropdown
+      searchResults.innerHTML = "";
+
+      // put selected text in search bar
+      searchBar.value = story;
+
+    };
+
+    searchResults.appendChild(item);
+
+  });
 
 });
 
@@ -394,8 +444,6 @@ function loadStory(story) {
 
     chapterDiv.appendChild(title);
 
-    // GET ALL IMAGES
-
     let chapterImages = GLOBAL_PATHS.filter(path =>
 
       path.startsWith(`stories/${story}/${chap}/`) &&
@@ -409,8 +457,6 @@ function loadStory(story) {
 
     );
 
-    // SORT IMAGES
-
     chapterImages.sort((a,b) => {
 
       return a.localeCompare(b, undefined, {
@@ -419,8 +465,6 @@ function loadStory(story) {
       });
 
     });
-
-    // DISPLAY IMAGES
 
     chapterImages.forEach(path => {
 
@@ -438,17 +482,11 @@ function loadStory(story) {
 
     });
 
-    // PDF FALLBACK
+    let pdf = document.createElement("iframe");
 
-    if(chapterImages.length === 0) {
+    pdf.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${chap}.pdf`;
 
-      let pdf = document.createElement("iframe");
-
-      pdf.src = `https://raw.githubusercontent.com/${USER}/${REPO}/main/stories/${story}/${chap}/${chap}.pdf`;
-
-      chapterDiv.appendChild(pdf);
-
-    }
+    chapterDiv.appendChild(pdf);
 
     document.getElementById("content").appendChild(chapterDiv);
 
@@ -460,21 +498,22 @@ function loadStory(story) {
 // ADMIN PANEL
 // =========================
 
-const adminButton = document.getElementById("adminButton");
-const adminPanel = document.getElementById("adminPanel");
+window.addEventListener("load", () => {
 
-adminButton.onclick = () => {
+  document.getElementById("adminButton").onclick = () => {
 
-  let adminPass = prompt("Admin password?");
+    let adminPass = prompt("Admin password?");
 
-  if(adminPass === "Sawyer1516") {
-    adminPanel.style.display = "block";
+    if(adminPass === Sawyer0325) {
+      document.getElementById("adminPanel").style.display = "block";
+    }
+
   }
 
-}
+});
 
 function closeAdmin() {
-  adminPanel.style.display = "none";
+  document.getElementById("adminPanel").style.display = "none";
 }
 
 // =========================
@@ -531,11 +570,17 @@ async function uploadChapter() {
 
     const file = sortedFiles[i];
 
-    const extension = file.name.split('.').pop();
+    const extension = file.name.split('.').pop().toLowerCase();
 
     const base64 = await toBase64(file);
 
-    const path = `stories/${story}/${chapter}/${i+1}.${extension}`;
+    let path;
+
+    if(extension === "pdf") {
+      path = `stories/${story}/${chapter}/${chapter}.pdf`;
+    } else {
+      path = `stories/${story}/${chapter}/${i+1}.${extension}`;
+    }
 
     await fetch(
       `https://api.github.com/repos/${USER}/${REPO}/contents/${path}`,
@@ -569,12 +614,21 @@ async function uploadChapter() {
 }
 
 // =========================
-// START
+// DELETE SYSTEM
 // =========================
 
-loadStories();
+async function getFile(path){
+  let r = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${path}`,{
+    headers:{Authorization:`token ${GITHUB_TOKEN}`}
+  });
+  return r.json();
+}
 
-</script>
-
-</body>
-</html>
+async function deleteFile(path, sha){
+  await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${path}`,{
+    method:"DELETE",
+    headers:{
+      Authorization:`token ${GITHUB_TOKEN}`,
+      "Content-Type":"application/json"
+    },
+   
